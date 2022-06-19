@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-app-bar app absolute color="teal lighten-1" dark elevate-on-scroll>
+                <v-app-bar-nav-icon>
+                    <v-icon>mdi-movie-open</v-icon>
+                </v-app-bar-nav-icon>
+                <v-toolbar-title>Movie Recommender System</v-toolbar-title>
+                <v-spacer></v-spacer>
+                COMP7240 - TeamVita
+            </v-app-bar>
+
+            <v-main>
+                <v-container fluid>
+
+                    <!-- Preference elicitation Stepper -->
+                    <v-stepper v-model="init_stepper" v-if="init_stepper != 0">
+                        <v-stepper-header>
+                            <v-stepper-step :complete="init_stepper > 1" step="1">
+                                Welcome
+                            </v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step :complete="init_stepper > 2" step="2">
+                                Provide Preference
+                            </v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step :complete="init_stepper > 3" step="3">
+                                Rate Movie
+                            </v-stepper-step>
+                            <v-divider></v-divider>
+                            <v-stepper-step step="3">
+                                Evaluation Group
+                            </v-stepper-step>
+                        </v-stepper-header>
+
+                        <v-stepper-items>
+                            <v-stepper-content step="1">
+                                <v-card class="mb-12 elevation-0" height="200px">
+                                    <v-card-title>Welcome!</v-card-title>
+                                    <v-card-subtitle>Welcome to TeamVita's Movie Recommender System</v-card-subtitle>
+                                    <v-card-text>Please rate the following movies~</v-card-text>
+                                    <v-card-actions>
+                                        <v-row>
+                                            <v-col class="text-right">
+                                                <v-btn color="teal lighten-2" text @click="init_stepper = 2">
+                                                    Continue
+                                                </v-btn>
+                                            </v-col>
+                                        </v-row>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-stepper-content>
+
+                            <v-stepper-content step="2">
+                                <v-card class="mb-12 elevation-0" height="auto">
+                                    <v-card-title>Provide Preference</v-card-title>
+                                    <!-- <div v-for="genre, index in genres"> -->
+                                    <v-row v-for="genre, index in genres" :key="index" class="d-flex justify-center">
+                                        <v-col cols="1" align="right">{{index}}</v-col>
+                                        <v-col cols="6">
+                                            <v-slider v-model="genres[index]" step="10" :max=100 :min=-100
+                                                thumb-label="always" ticks>
+                                            </v-slider>
+                                        </v-col>
+                                    </v-row>
+                                    <!-- </div> -->
+                                    <v-card-actions>
+                                        <v-row>
+                                            <v-col>
+                                                <v-btn text @click="init_stepper = 1">
+                                                    Back
+                                                </v-btn>
+                                            </v-col>
+                                            <v-col class="text-right">
+                                                <v-btn color="teal lighten-2" text
+                                                    @click="init_stepper = 3, getInitMovies()">
+                                                    Continue
+                                                </v-btn>
+                                            </v-col>
+                                        </v-row>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-stepper-content>
+
+                            <v-stepper-content step="3">
+                                <v-row dense>
+                                    <v-col v-for="movie in init_movie_rating" :key="movie.id" cols="6">
+                                        <v-card class="mx-auto elevation-20" color="teal lighten-2" dark
+                                            style="max-width: 400px;">
+                                            <v-row justify="space-between">
+                                                <v-col cols="8">
+                                                    <v-card-title>
+                                                        <div>
+                                                            <div class="text-h5">{{movie.movie_title}}</div>
+                                                            <!-- <div>Ellie Goulding</div> -->
+                                                            <div>{{movie.release_date}}</div>
+                                                        </div>
+                                                    </v-card-title>
+                                                </v-col>
+                                                <v-img class="shrink ma-2" contain eager height="125px"
+                                                    :src="movie.poster_url" style="flex-basis: 125px"></v-img>
+                                            </v-row>
+                                            <v-divider dark></v-divider>
+                                            <v-card-actions class="pa-4">
+                                                Rate this movie
+                                                <v-spacer></v-spacer>
+                                                <span class="grey--text text--lighten-2 text-caption mr-2">
+                                                </span>
+                                                <v-rating v-model="movie.score" background-color="white"
+                                                    color="yellow accent-4" dense hover size="18">
+                                                </v-rating>
+                                            </v-card-actions>
+                                        </v-card>
+                                        <br>
+                                    </v-col>
+                                </v-row>
+                                <v-card-actions>
+                                    <v-row>
+                                        <v-col>
+                                            <v-btn text @click="init_stepper = 2">
+                                                Back
+                                            </v-btn>
+                                        </v-col>
+                                        <v-col class="text-right">
+                                            <v-btn color="teal lighten-2" text @click="init_stepper = 4">
+                                                Continue
+                                            </v-btn>
+                                        </v-col>
+                                    </v-row>
+                                </v-card-actions>
+                                </v-card>
+                            </v-stepper-content>
+
+                            <v-stepper-content step="4">
+                                <v-card class="mb-12" height="200px">
+                                    <v-card-title>Evaluation Group</v-card-title>
+                                    <v-card-subtitle>Please select your assigned evaluation group</v-card-subtitle>
+                                    <v-row>
+                                        <v-col class="d-flex justify-center">
+                                            <v-radio-group v-model="evaluation_group" row>
+                                                <v-radio label="Group A (SVD)" value="SVD"></v-radio>
+                                                <v-radio label="Group B (SlopeOne)" value="SlopeOne"></v-radio>
+                                                <!-- <v-radio label="Group Testing (KNN)" value="KNNBasic"></v-radio> -->
+                                            </v-radio-group>
+                                        </v-col>
+                                    </v-row>
+                                    <v-card-actions>
+                                        <v-row>
+                                            <v-col>
+                                                <v-btn text @click="init_stepper = 3">
+                                                    Back
+                                                </v-btn>
+                                            </v-col>
+                                            <v-col class="text-right">
+                                                <v-btn color="teal lighten-2" text
+                                                    @click="init_stepper = 0; evaluation_step = 1; getRecommendedList(); algoSelection();">
+                                                    Finish
+                                                </v-btn>
+                                            </v-col>
+                                        </v-row>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-stepper-content>
+                        </v-stepper-items>
+                    </v-stepper>
+                    <!-- End Preference elicitation Stepper -->
+
+                    <div v-if="evaluation_step!=0" class="ma-5">
+                        <v-row>
+                            <div class="text-h4">Top movies</div>
+                        </v-row>
+                        <v-row class="d-flex flex-nowrap py-3" style="max-height: 600px;overflow-x: auto">
+                            <v-col v-for="movie in top_movie" :key="movie.id">
+                                <v-card class="mx-2 my-5 d-flex flex-column" width="250" height="500" max-height="500">
+                                    <v-img max-height="200" v-bind:src="movie_detail[movie].poster">
+                                    </v-img>
+                                    <v-card-title>{{movie_detail[movie].title}}</v-card-title>
+                                    <v-spacer></v-spacer>
+                                    <v-card-text>
+                                        <v-row align="center" class="mx-0">
+                                            <v-rating :value="movie_detail[movie].mean" color="amber" dense
+                                                half-increments readonly size="14">
+                                            </v-rating>
+                                            <div class="grey--text my-4">
+                                                {{movie_detail[movie].mean}} ({{movie_detail[movie].size}})
+                                            </div>
+                                        </v-row>
+                                        <v-chip-group column>
+                                            <v-chip v-for="genre in movie_detail[movie].genres" :key="genre">{{genre}}
+                                            </v-chip>
+                                        </v-chip-group>
+                                    </v-card-text>
+                                    <v-divider class="mx-4"></v-divider>
+                                    <v-card-actions class="d-flex justify-center">
+                                        <v-rating color="yellow accent-4" dense hover size="18">
+                                        </v-rating>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-col>
+                        </v-row><br><br><br>
+                        <!-- Recommended For You -->
+                        <v-row>
+                            <div class="text-h4">Recommended For You</div>
+                        </v-row>
+                        <v-row class="d-flex flex-nowrap py-3" style="max-height: 600px;overflow-x: auto">
+                            <v-col v-for="movie in recommendedList" :key="movie.id">
+                                <v-card class="mx-2 my-5 d-flex flex-column" width="250" height="500" max-height="500">
+                                    <v-img max-height="200" eager :src="movie.poster_url"></v-img>
+                                    <v-card-title>{{movie.movie_title}}</v-card-title>
+                                    <v-spacer></v-spacer>
+                                    <v-card-text v-if="movie_detail[movie.movie_id] !== undefined">
+                                        <v-row align="center" class="mx-0">
+                                            <v-rating
+                                                :value="movie_detail[movie.movie_id].mean" color="amber" dense
+                                                half-increments readonly size="14">
+                                            </v-rating>
+                                            <div
+                                                class="grey--text my-4">
+                                                {{movie_detail[movie.movie_id].mean}}
+                                                ({{movie_detail[movie.movie_id].size}})
+                                            </div>
+                                        </v-row>
+                                        <v-chip-group column>
+                                            <v-chip v-for="genre in movie_detail[movie.movie_id].genres" :key="genre">
+                                                {{genre}}
+                                            </v-chip>
+                                        </v-chip-group>
+                                    </v-card-text>
+
+                                    <v-divider class="mx-4"></v-divider>
+                                    <v-card-actions class="d-flex justify-center">
+                                        <v-rating v-model="movie.score"
+                                            @input="add_recommend(movie.movie_id, movie.movie_title, $event)"
+                                            color="yellow accent-4" dense hover size="18">
+                                        </v-rating>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-col>
+                        </v-row><br><br><br>
+
+                        <!-- Based on moive you liked -->
+                        <v-row>
+                            <div v-if="base_on_your_like_list.length>0" class="text-h4 mb-5">Based on moive you rated
+                            </div>
+                        </v-row>
+                        <div v-for="(liked_movie, index) in base_on_your_like_list" :key="index">
+                            <div class="text-h5 mb-5">As you rated {{liked_movie_list[index]}}</div>
+                            <v-row class="d-flex flex-nowrap py-3" style="max-height: 600px;overflow-x: auto">
+                                <v-col v-for="movie in liked_movie" :key="movie.id">
+                                    <v-card class="mx-2 my-5 d-flex flex-column" width="250" height="500"
+                                        max-height="500">
+                                        <v-img max-height="200" eager :src="movie.poster_url"></v-img>
+                                        <v-card-title>{{movie.movie_title}}</v-card-title>
+                                        <v-spacer></v-spacer>
+                                        <v-card-text v-if="movie_detail[movie.movie_id] !== undefined">
+                                            <v-row align="center" class="mx-0">
+                                                <v-rating :value="4.5" color="amber" dense half-increments readonly
+                                                    size="14">
+                                                </v-rating>
+
+                                                <div class="grey--text my-4">
+                                                    {{movie_detail[movie.movie_id].mean}}
+                                                    ({{movie_detail[movie.movie_id].size}})
+                                                </div>
+                                            </v-row>
+                                            <v-chip-group column>
+                                                <v-chip v-for="genre in movie_detail[movie.movie_id].genres"
+                                                    :key="genre">{{genre}}
+                                                </v-chip>
+                                            </v-chip-group>
+                                        </v-card-text>
+
+                                        <v-divider class="mx-4"></v-divider>
+                                        <v-card-actions class="d-flex justify-center">
+                                            <v-rating v-model="movie.score"
+                                                @input="add_recommend(movie.movie_id, movie.movie_title, $event, false)"
+                                                color="yellow accent-4" dense hover size="18">
+                                            </v-rating>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-col>
+                            </v-row><br><br><br>
+                        </div>
+                    </div>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            vuetify: new Vuetify(),
+            data: function () {
+                return {
+                    baseurl: 'http://127.0.0.1:8000',
+                    init_stepper: 1, //0 to temp disable
+                    init_movie_rating: [],
+                    genres: [],
+                    top_movie: [],
+                    movie_detail: [],
+                    recommendedList: [],
+                    base_on_your_like_list: [],
+                    liked_movie_list: [],
+                    evaluation_group: '',
+                    evaluation_step: 0
+                }
+            },
+            methods: {
+                getGenre: function () {
+                    axios.get(this.baseurl + "/api/genre").then((res) => {
+                        this.genres = Object.assign(...res.data.genre.map(v => ({ [v]: 0 })));
+                    });
+
+                },
+                getInitMovies: function () {
+                    axios.post(this.baseurl + "/api/movies", this.top_genre).then((res) => {
+                        console.log(res);
+                        this.init_movie_rating = res.data;
+                    })
+                },
+                getRecommendedList: function () {
+                    axios.post(this.baseurl + "/api/recommend", this.init_movie_rating).then((res) => {
+                        // console.log(res.data)
+                        this.recommendedList = res.data;
+                        this.recommendedList.forEach(movie => {
+                            this.getMovieDetail(movie.movie_id);
+                        })
+                    });
+                },
+                add_recommend(movie_id, movie_title, score, add_new_list = true) {
+                    // console.log(value);
+                    axios.get(this.baseurl + '/api/add_recommend?item_id=' + movie_id+'&in_score='+score).then((res) => {
+                        console.log(res.data);
+                        if (add_new_list) {
+                            this.liked_movie_list.push(movie_title);
+                            this.base_on_your_like_list.push(res.data);
+                            res.data.forEach(movie => {
+                                this.getMovieDetail(movie.movie_id);
+                            })
+                        }
+
+                    })
+                },
+                getTopMovies: function () {
+                    axios.get(this.baseurl + "/api/top_movies").then((res) => {
+                        this.top_movie = res.data;
+                        this.top_movie.forEach(movie => {
+                            this.getMovieDetail(movie);
+                        })
+                    })
+                },
+                getMovieDetail(movie_id) {
+                    axios.get(this.baseurl + "/api/movie_detail", { params: { item_id: movie_id } }).then((res) => {
+                        this.movie_detail[movie_id] = res.data;
+                        this.$forceUpdate();
+                    });
+                },
+                algoSelection() {
+                    axios.get(this.baseurl + "/api/algo_selection/" + this.evaluation_group).then((res) => {
+                    })
+                },
+                setUserID() {
+                    axios.get(this.baseurl + "/api/index_assign").then((res) => {
+                    })
+                }
+            },
+            mounted: function () {
+                this.getGenre();
+                this.getTopMovies();
+                this.setUserID()
+            },
+            computed: {
+                top_genre() {
+                    return Object.keys(this.genres).sort((a, b) => this.genres[b] - this.genres[a]).slice(0, 5);
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
+
